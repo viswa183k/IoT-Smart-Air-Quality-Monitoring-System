@@ -1,0 +1,42 @@
+// IoT Air Quality Monitoring System
+// ESP8266 + MQ135 Sensor
+
+#include <ESP8266WiFi.h>
+
+const char* ssid = "YOUR_WIFI";
+const char* password = "YOUR_PASS";
+
+const int gasSensor = A0;
+
+WiFiClient client;
+
+void setup() {
+  Serial.begin(9600);
+  WiFi.begin(ssid, password);
+
+  Serial.print("Connecting...");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("Connected!");
+}
+
+void loop() {
+  int airQuality = analogRead(gasSensor);
+
+  Serial.print("Air Quality: ");
+  Serial.println(airQuality);
+
+  // Send data to cloud (example HTTP request)
+  if (client.connect("api.thingspeak.com", 80)) {
+    String url = "/update?api_key=YOUR_API_KEY&field1=" + String(airQuality);
+
+    client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+                 "Host: api.thingspeak.com\r\n" +
+                 "Connection: close\r\n\r\n");
+  }
+
+  delay(15000);
+}
